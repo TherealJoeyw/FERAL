@@ -16,12 +16,12 @@ CALICO FERAL (Field Expedient Reconnaissance and Analysis Laboratory) is an offl
 - **PAW reference hardware:** Anbernic RG35XX H (Allwinner H700 handheld)
 - **WHISKER reference hardware:** Raspberry Pi Zero 2W with custom carrier
 
-## Licencing
+## Licensing
 
 This repository uses a split licence model:
 
-- `paw/`, `whisker/`, `stalk/`, and `scar/` source code is licenced under **PolyForm Noncommercial 1.0**.
-- `feral-os/` and `tools/` build configuration and infrastructure glue are licenced under **MIT**.
+- `paw/`, `whisker/`, `stalk/`, and `scar/` source code is licensed under **PolyForm Noncommercial 1.0**.
+- `feral-os/` and `tools/` build configuration and infrastructure glue are licensed under **MIT**.
 
 See `LICENCE-polyform-nc` and `LICENCE-mit` in the repository root.
 
