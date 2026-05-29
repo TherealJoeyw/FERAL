@@ -7,14 +7,14 @@ CALICO FERAL (Field Expedient Reconnaissance and Analysis Laboratory) is an offl
 | Component | Expansion | Role |
 |---|---|---|
 | PAW | Peripheral Auxiliary Workstation | Operator handheld interface, local apps, and field control surface |
-| WHISKER | Wireless Hub for Intelligence, Sensing, Kinetics, Environmental Reconnaissance | Passive sensing and communications hub with continuous logging |
+| WHISKER | Wireless Hub for Intelligence, Sensing, Kinetics, and Environmental Reconnaissance | Sensing and communications hub with continuous logging |
 | STALK | Synchronised Telemetery Analysis and Logging Kernel | Home/backend sync, storage, local AI, and update distribution |
-| SCAR | Standard Calico Asset Receptacle | Open USB-C module standard for hardware expansion |
+| SCAR | Standard Calico Asset Receptacle | Open USB-C based module standard for hardware expansion |
 
 ## Hardware
 
 - **PAW reference hardware:** Anbernic RG35XX H (Allwinner H700 handheld)
-- **WHISKER reference hardware:** Raspberry Pi Zero 2W with custom carrier
+- **WHISKER reference hardware:** Raspberry Pi Zero 1W/2W with custom carrier
 
 ## Licensing
 
