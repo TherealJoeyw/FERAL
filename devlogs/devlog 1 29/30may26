@@ -1,0 +1,74 @@
+# Devlog 001
+**30 May 2026**
+
+---
+
+## Repository
+
+The repo went live today at [github.com/TherealJoeyw/FERAL](https://github.com/TherealJoeyw/FERAL).
+
+Structure was scaffolded using GitHub Copilot fed a detailed context document covering the full architecture. The repo uses a dual licence model: original source code under PolyForm Noncommercial 1.0, build configuration and infrastructure glue under MIT.
+
+---
+
+## OS bringup approach
+
+The Allwinner H700 has no mainline kernel support for display or GPU. Anbernic have not published kernel source despite being required to under the GPL. Every custom firmware for this device (KNULLI, ROCKNIX) uses binary bootloader and kernel blobs extracted from Anbernic stock firmware.
+
+FERAL OS takes the same approach as a temporary measure. The plan is to switch to mainline kernel once H700 display support lands, which the linux-sunxi community is actively working on.
+
+The boot chain:
+
+1. `boot0.img` — Allwinner first-stage bootloader
+2. `boot_package.fex` — U-Boot package
+3. `boot.img` — Android boot image format containing kernel + initramfs
+4. initramfs mounts FAT32 partition, loop-mounts squashfs rootfs, sets up overlayfs, calls `switch_root`
+5. BusyBox init, S?? scripts, userspace
+
+The kernel blobs were sourced from the KNULLI project's public repository. Both are GPL licensed regardless of Anbernic's non-compliance.
+
+---
+
+## Buildroot
+
+A Buildroot cross-compilation environment was configured on WSL2 Ubuntu targeting AArch64 Cortex-A53. Packages included: Python 3, dropbear SSH, wpa_supplicant, bluez-utils, gpsd, i2c-tools, usbutils.
+
+The resulting rootfs.tar is approximately 51MB uncompressed.
+
+Kernel modules for the H700 (WiFi RTL8821CS, display, Mali GPU) were extracted from a running KNULLI instance over SSH and added to the rootfs at `/lib/modules/4.9.170/`.
+
+The rootfs is packaged as a squashfs image and placed at `/boot/batocera` on the FAT32 boot partition, which is where KNULLI's initramfs expects to find it.
+
+---
+
+## Current status
+
+The device powers on and displays the KNULLI bootloader splash screen. The initramfs appears to be loading but something is failing before userspace comes up. The screen stays on the boot splash with no further output.
+
+Diagnosis is blocked by lack of serial console access and no mini HDMI adapter. One has been ordered, arriving tomorrow. Once connected to a monitor the kernel boot log should make the failure immediately obvious.
+
+The most likely causes are an overlayfs mount failure or a missing directory in the rootfs that the initramfs expects.
+
+---
+
+## What's left for bringup
+
+- Identify and fix the initramfs failure (blocked on mini HDMI adapter)
+- Confirm SSH access over WiFi
+- Confirm display output to device screen
+- Write paw_defconfig to repo
+
+Once SSH and display are working the bringup milestone is complete and application development can begin.
+
+---
+
+## Hardware notes
+
+- RG35XX H confirmed working on stock firmware before any modifications
+- One 16GB SanDisk SD card failed during the session, replaced with a working card
+- Both USB-C ports support OTG, one additionally supports charging
+- Mini HDMI port confirmed present, adapter required
+
+---
+
+*Next devlog: post mini HDMI adapter arrival, first successful boot to shell.*
