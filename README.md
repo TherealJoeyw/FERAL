@@ -1,6 +1,6 @@
-# CALICO FERAL
+# FERAL
 
-CALICO FERAL (Field Expedient Reconnaissance and Analysis Laboratory) is an offline-first field computing platform built from low-cost hardware where each component operates independently and synchronizes opportunistically when links exist. It is designed for degraded conditions where networks fail and infrastructure cannot be trusted, with a form factor that blends into normal handheld electronics while still providing practical reconnaissance and analysis capability.
+FERAL (Field Expedient Reconnaissance and Analysis Laboratory) is an offline-first field computing platform built from low-cost hardware where each component operates independently and synchronizes opportunistically when links exist. It is designed for degraded conditions where networks fail and infrastructure cannot be trusted, with a form factor that blends into normal handheld electronics while still providing practical reconnaissance and analysis capability.
 
 ## Components
 
