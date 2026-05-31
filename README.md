@@ -1,5 +1,7 @@
 # FERAL
 
+<img width="510" height="510" alt="image" src="https://github.com/user-attachments/assets/5c413584-8426-48ec-a062-61b3d823dd66" />
+
 FERAL (Field Expedient Reconnaissance and Analysis Laboratory) is an offline-first field computing platform built from low-cost hardware where each component operates independently and synchronizes opportunistically when links exist. It is designed for degraded conditions where networks fail and infrastructure cannot be trusted, with a form factor that blends into normal handheld electronics while still providing practical reconnaissance and analysis capability.
 
 ## Components
