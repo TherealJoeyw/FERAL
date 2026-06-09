@@ -304,7 +304,15 @@ build_kernel() {
     # Kernel build is memory-hungry. Cap at 4 jobs to avoid OOM in WSL2.
     local jobs
     jobs=$(( $(nproc) > 4 ? 4 : $(nproc) ))
-    make ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" -j"$jobs" Image dtbs modules
+
+    make ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" -j"$jobs" Image modules
+
+    # Build only the device tree subtrees we actually need.
+    # Add entries here when supporting new hardware targets.
+    make ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" -j"$jobs" \
+        allwinner/sun50i-h700-anbernic-rg35xx-h.dtb
+        # allwinner/sun50i-h700-anbernic-rg35xx-plus.dtb   # RG35XX Plus
+        # allwinner/sun50i-h616-orangepi-zero2.dtb          # example other H616 target
 
     [[ -f arch/arm64/boot/Image ]] || die "Kernel Image not produced"
     [[ -f "$DTB_PATH" ]] || die "Device tree not built: $DTB_PATH"
@@ -361,6 +369,8 @@ EOF
 
     if [[ -d "$OVERLAY_DIR" ]]; then
         sudo cp -r "$OVERLAY_DIR/." "$root_mnt/"
+        # GitHub doesn't preserve execute bits — restore them for init scripts
+        sudo chmod +x "$root_mnt/etc/init.d/"S* 2>/dev/null || true
         log "Overlays applied from $OVERLAY_DIR"
     else
         warn "No overlay dir at $OVERLAY_DIR — skipping."
