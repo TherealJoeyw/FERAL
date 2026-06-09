@@ -128,11 +128,31 @@ trap cleanup EXIT
 # ---------------------------------------------------------------------------
 
 check_deps() {
-    local deps=(make git parted mkfs.fat mkfs.ext4 losetup dd)
-    deps+=("${CROSS_COMPILE}gcc")
-    for dep in "${deps[@]}"; do
-        command -v "$dep" &>/dev/null || die "Missing dependency: $dep"
+    local apt_packages=(
+        gcc-aarch64-linux-gnu
+        make
+        git
+        parted
+        dosfstools
+        e2fsprogs
+        util-linux
+        xz-utils
+    )
+
+    local missing_apt=()
+    for pkg in "${apt_packages[@]}"; do
+        dpkg -s "$pkg" &>/dev/null || missing_apt+=("$pkg")
     done
+
+    if [[ ${#missing_apt[@]} -gt 0 ]]; then
+        log "Installing missing packages: ${missing_apt[*]}"
+        sudo apt-get update -qq
+        sudo apt-get install -y "${missing_apt[@]}"
+    fi
+
+    command -v "${CROSS_COMPILE}gcc" &>/dev/null || \
+        die "Cross-compiler ${CROSS_COMPILE}gcc still not found after install."
+
     [[ -f "$BUILDROOT_ROOTFS" ]] || \
         die "Buildroot rootfs not found at $BUILDROOT_ROOTFS. Set FERAL_ROOTFS to override."
 }
