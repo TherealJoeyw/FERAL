@@ -138,6 +138,12 @@ check_deps() {
         e2fsprogs
         util-linux
         xz-utils
+        bison
+        flex
+        libssl-dev
+        bc
+        python3
+        python3-setuptools
     )
 
     local missing_apt=()
