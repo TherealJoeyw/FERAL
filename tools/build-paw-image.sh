@@ -187,15 +187,47 @@ build_uboot() {
         git clone "$UBOOT_REPO" "$uboot_dir"
     fi
 
-    # Patch pylibfdt for SWIG 4.3.0+ API compatibility.
-    # SWIG_Python_AppendOutput gained a third argument in 4.3.0.
-    # The correct fix is to use SWIG_AppendOutput which handles is_void internally.
-    # See: https://patchwork.ozlabs.org/project/uboot/patch/Zxzh0ODFyZnav5JE@74d70d9af7e3/
-    local libfdt_wrap="$uboot_dir/scripts/dtc/pylibfdt/libfdt_wrap.c"
-    if [[ -f "$libfdt_wrap" ]]; then
-        sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' "$libfdt_wrap"
-        log "pylibfdt patched for SWIG 4.3+"
-    fi
+    # Build pylibfdt manually — setup.py cannot run in this context and
+    # the PYMOD make step is unreliable with SWIG 4.3+.
+    # We: patch the .i file, run swig, patch the generated .c, compile directly.
+    local pylibfdt_dir="$uboot_dir/scripts/dtc/pylibfdt"
+    local libfdt_dir="$uboot_dir/scripts/dtc/libfdt"
+
+    log "Building pylibfdt..."
+
+    # Patch .i_shipped for SWIG 4.3+ API compatibility
+    sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' "$pylibfdt_dir/libfdt.i_shipped"
+
+    # Generate libfdt_wrap.c via swig
+    cp "$pylibfdt_dir/libfdt.i_shipped" "$pylibfdt_dir/libfdt.i"
+    swig -python -I"$uboot_dir/scripts/dtc" -I"$libfdt_dir" \
+        -o "$pylibfdt_dir/libfdt_wrap.c" "$pylibfdt_dir/libfdt.i"
+
+    # Patch generated C file for SWIG 4.3+ API compatibility
+    sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' "$pylibfdt_dir/libfdt_wrap.c"
+
+    # Compile _libfdt.so directly, bypassing setup.py
+    local pyinc
+    pyinc=$(python3 -c "import sysconfig; print(sysconfig.get_path('include'))")
+    local ext
+    ext=$(python3 -c "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))")
+
+    gcc -shared -fPIC -o "$pylibfdt_dir/_libfdt${ext}" \
+        -I"$pyinc" -I"$libfdt_dir" \
+        "$pylibfdt_dir/libfdt_wrap.c" \
+        "$libfdt_dir/fdt.c" \
+        "$libfdt_dir/fdt_ro.c" \
+        "$libfdt_dir/fdt_rw.c" \
+        "$libfdt_dir/fdt_strerror.c" \
+        "$libfdt_dir/fdt_empty_tree.c" \
+        "$libfdt_dir/fdt_addresses.c" \
+        "$libfdt_dir/fdt_overlay.c"
+
+    [[ -f "$pylibfdt_dir/_libfdt${ext}" ]] || die "pylibfdt build failed"
+    log "pylibfdt OK"
+
+    # Add pylibfdt to PYTHONPATH so binman can find it
+    export PYTHONPATH="$pylibfdt_dir:${PYTHONPATH:-}"
 
     cd "$uboot_dir"
 
