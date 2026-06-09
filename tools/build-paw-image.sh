@@ -185,6 +185,9 @@ build_uboot() {
 
     if [[ ! -d "$uboot_dir" ]]; then
         git clone "$UBOOT_REPO" "$uboot_dir"
+        # pylibfdt Python bindings are incompatible with SWIG 4.4+.
+        # U-Boot doesn't need them to produce u-boot-sunxi-with-spl.bin.
+        rm -rf "$uboot_dir/scripts/dtc/pylibfdt"
     fi
 
     cd "$uboot_dir"
@@ -207,7 +210,7 @@ build_uboot() {
 
     log "U-Boot defconfig: $defconfig"
     make CROSS_COMPILE="$CROSS_COMPILE" "$defconfig"
-    make CROSS_COMPILE="$CROSS_COMPILE" BL31="$WORKSPACE/$PROFILE/trusted-firmware-a/build/sun50i_h616/release/bl31.bin" -j"$(nproc)"
+    make CROSS_COMPILE="$CROSS_COMPILE" BL31="$WORKSPACE/$PROFILE/trusted-firmware-a/build/sun50i_h616/release/bl31.bin" NO_PYTHON=1 -j"$(nproc)"
 
     [[ -f u-boot-sunxi-with-spl.bin ]] || die "U-Boot build produced no u-boot-sunxi-with-spl.bin"
     log "U-Boot OK"
