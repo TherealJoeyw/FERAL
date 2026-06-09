@@ -265,7 +265,10 @@ build_kernel() {
     "kernel_configs_$PROFILE"
 
     make ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" olddefconfig
-    make ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" -j"$(nproc)" Image dtbs modules
+    # Kernel build is memory-hungry. Cap at 4 jobs to avoid OOM in WSL2.
+    local jobs
+    jobs=$(( $(nproc) > 4 ? 4 : $(nproc) ))
+    make ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" -j"$jobs" Image dtbs modules
 
     [[ -f arch/arm64/boot/Image ]] || die "Kernel Image not produced"
     [[ -f "$DTB_PATH" ]] || die "Device tree not built: $DTB_PATH"
