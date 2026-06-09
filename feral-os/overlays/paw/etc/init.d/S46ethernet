@@ -1,0 +1,25 @@
+#!/bin/sh
+# FERAL OS — USB ethernet init (RTL8153 / TP-Link UE300C)
+
+IFACE="eth0"
+PIDFILE="/var/run/udhcpc-eth0.pid"
+
+start() {
+    echo "Starting USB ethernet..."
+    modprobe r8152 2>/dev/null || true
+    ip link set "$IFACE" up 2>/dev/null || true
+    udhcpc -b -i "$IFACE" -p "$PIDFILE" 2>/dev/null || true
+}
+
+stop() {
+    echo "Stopping USB ethernet..."
+    kill $(cat "$PIDFILE" 2>/dev/null) 2>/dev/null
+    ip link set "$IFACE" down 2>/dev/null || true
+}
+
+case "$1" in
+    start) start ;;
+    stop)  stop  ;;
+    restart) stop; start ;;
+    *) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
+esac

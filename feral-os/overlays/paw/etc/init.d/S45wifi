@@ -1,0 +1,27 @@
+#!/bin/sh
+# FERAL OS — WiFi init (wpa_supplicant)
+
+DAEMON="wpa_supplicant"
+IFACE="wlan0"
+CONF="/etc/wpa_supplicant.conf"
+PIDFILE="/var/run/wpa_supplicant.pid"
+
+start() {
+    echo "Starting WiFi..."
+    ip link set "$IFACE" up
+    "$DAEMON" -B -D nl80211 -i "$IFACE" -c "$CONF" -P "$PIDFILE"
+    udhcpc -b -i "$IFACE" -p /var/run/udhcpc-"$IFACE".pid
+}
+
+stop() {
+    echo "Stopping WiFi..."
+    kill $(cat "$PIDFILE" 2>/dev/null) 2>/dev/null
+    ip link set "$IFACE" down
+}
+
+case "$1" in
+    start) start ;;
+    stop)  stop  ;;
+    restart) stop; start ;;
+    *) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
+esac

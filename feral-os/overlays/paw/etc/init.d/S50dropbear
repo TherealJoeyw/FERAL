@@ -1,0 +1,24 @@
+#!/bin/sh
+# FERAL OS — dropbear SSH
+# -R: generate host keys at runtime if missing
+# -B: allow root login with blank password
+
+DAEMON="dropbear"
+PIDFILE="/var/run/dropbear.pid"
+
+start() {
+    echo "Starting SSH..."
+    "$DAEMON" -R -B -p 22 -P "$PIDFILE"
+}
+
+stop() {
+    echo "Stopping SSH..."
+    kill $(cat "$PIDFILE" 2>/dev/null) 2>/dev/null
+}
+
+case "$1" in
+    start) start ;;
+    stop)  stop  ;;
+    restart) stop; start ;;
+    *) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
+esac
