@@ -1,0 +1,91 @@
+# Devlog 002
+**31 May 2026 — 9 June 2026**
+
+---
+
+## Summary
+
+Extended bringup session. A lot of dead ends, one major direction change, and a clearer path forward than we started with.
+
+---
+
+## What we tried
+
+### Squashfs approach
+
+The KNULLI initramfs mounts a squashfs from `/boot/boot/batocera` inside a FAT32 partition on mmcblk0p3. We replaced that squashfs with our Buildroot rootfs, packaged as a squashfs. The device booted, the initramfs ran, overlayfs mounted. But we couldn't get SSH working and had no way to see what was happening without serial console access.
+
+Attempts to debug:
+
+- Tried adding WiFi init scripts to the squashfs overlay. WiFi occasionally connected (got a ping response once) but SSH never came up.
+- Tried adding dropbear with `-R -B` flags. Still not reachable.
+- Ordered and received a mini HDMI adapter. KNULLI doesn't enable HDMI output by default and neither does our image, so this didn't help.
+- Tried ADB via the KNULLI ADB daemon. Got it working on KNULLI but couldn't replicate on our image without adbd in the rootfs.
+- Ordered a TP-Link UE300C USB-C ethernet adapter (RTL8153). The r8152 module is not in the KNULLI kernel modules we extracted, so the adapter doesn't come up.
+
+The fundamental problem throughout: no serial console, no display output, no reliable network. Debugging completely blind.
+
+### Build script
+
+Wrote a proper build script at `tools/build-paw-image.sh` that automates the full image assembly:
+
+- Creates a blank image file
+- Writes bootloader blobs at raw offsets
+- Creates GPT partition table
+- Formats FAT32 boot partition
+- Builds squashfs from Buildroot rootfs plus overlay
+- Populates FAT32 with squashfs and boot metadata
+
+The overlay system at `feral-os/overlays/paw/` lets us add init scripts and config files without modifying the Buildroot config. This is the right pattern and will carry forward.
+
+---
+
+## Direction change: mainline kernel
+
+The linux-sunxi.org page for the RG35XX H reveals mainline support is much further along than expected.
+
+As of kernel 6.10, merged into mainline:
+- RG35XX H device tree (`sun50i-h700-anbernic-rg35xx-h.dts`)
+- WiFi: RTW88 8821CS driver
+- AXP717 PMIC
+- Display engine DE33 (patches submitted May 2025)
+- Gamepad buttons and thumbsticks
+- Power LED
+
+WIP but functional with patches:
+- Mainline U-Boot at `git.sr.ht/~tokyovigilante/u-boot`
+- LCD display (NV3052C driver)
+- Mali GPU via Panfrost
+
+This changes the plan significantly. We are switching from KNULLI blobs to mainline U-Boot plus a recent mainline kernel. This means:
+
+- No more squashfs. Standard ext4 rootfs.
+- No more KNULLI boot chain. Proper sunxi U-Boot + extlinux boot.
+- RTL8153 ethernet will work (r8152 is mainline).
+- WiFi will work via RTW88.
+- Display is close to working.
+
+The build script needs rewriting for the mainline approach. The Buildroot rootfs stays, just the boot chain changes.
+
+---
+
+## Hardware notes
+
+- Mini HDMI adapter arrived, confirmed not useful for debugging (HDMI not enabled in KNULLI or our image by default)
+- TP-Link UE300C ethernet adapter arrived, not usable with KNULLI kernel (r8152 module missing), will work with mainline kernel
+- UART pads confirmed present on PCB between left SD slot and left speaker (GND, TX, RX, GND), T6 Torx required to access
+
+---
+
+## What's next
+
+1. Clone `git.sr.ht/~tokyovigilante/u-boot` and build for RG35XX H
+2. Clone mainline Linux kernel and build with H700 device tree and RTW88 WiFi enabled
+3. Rewrite build script for mainline boot chain (no squashfs, extlinux.conf, standard partition layout)
+4. Flash and boot
+
+The USB ethernet adapter will be the primary debug interface once r8152 is in the kernel.
+
+---
+
+*Next devlog: first mainline kernel boot.*
