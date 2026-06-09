@@ -215,13 +215,7 @@ build_uboot() {
     gcc -shared -fPIC -o "$pylibfdt_dir/_libfdt${ext}" \
         -I"$pyinc" -I"$libfdt_dir" \
         "$pylibfdt_dir/libfdt_wrap.c" \
-        "$libfdt_dir/fdt.c" \
-        "$libfdt_dir/fdt_ro.c" \
-        "$libfdt_dir/fdt_rw.c" \
-        "$libfdt_dir/fdt_strerror.c" \
-        "$libfdt_dir/fdt_empty_tree.c" \
-        "$libfdt_dir/fdt_addresses.c" \
-        "$libfdt_dir/fdt_overlay.c"
+        "$libfdt_dir"/*.c
 
     [[ -f "$pylibfdt_dir/_libfdt${ext}" ]] || die "pylibfdt build failed"
     log "pylibfdt OK"
