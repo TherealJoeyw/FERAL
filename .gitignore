@@ -1,0 +1,10 @@
+# Build workspace
+feral-build/
+
+# Buildroot output
+buildroot/
+
+# Editor
+.vscode/
+*.swp
+*~

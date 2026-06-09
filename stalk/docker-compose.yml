@@ -1,0 +1,3 @@
+# STALK — FERAL home backend
+# TODO: define services (Ollama, sync agent, storage)
+services: {}
