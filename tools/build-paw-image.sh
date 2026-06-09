@@ -144,6 +144,7 @@ check_deps() {
         bc
         python3
         python3-setuptools
+        swig
     )
 
     local missing_apt=()
