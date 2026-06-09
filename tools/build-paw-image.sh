@@ -60,6 +60,7 @@ load_profile() {
             # h700-gpu-mainline carries WIP patches for H700 DE33 display engine,
             # NV3052C panel, Panfrost GPU power domain, and PWM backlight.
             UBOOT_DEFCONFIG_CANDIDATES=(
+                anbernic_rg35xxplus_defconfig
                 anbernic_rg35xx-h_defconfig
                 rg35xx-h_defconfig
                 anbernic-rg35xx-h_defconfig
