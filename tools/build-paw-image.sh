@@ -185,9 +185,16 @@ build_uboot() {
 
     if [[ ! -d "$uboot_dir" ]]; then
         git clone "$UBOOT_REPO" "$uboot_dir"
-        # pylibfdt Python bindings are incompatible with SWIG 4.4+.
-        # U-Boot doesn't need them to produce u-boot-sunxi-with-spl.bin.
-        rm -rf "$uboot_dir/scripts/dtc/pylibfdt"
+    fi
+
+    # Patch pylibfdt for SWIG 4.3.0+ API compatibility.
+    # SWIG_Python_AppendOutput gained a third argument in 4.3.0.
+    # The correct fix is to use SWIG_AppendOutput which handles is_void internally.
+    # See: https://patchwork.ozlabs.org/project/uboot/patch/Zxzh0ODFyZnav5JE@74d70d9af7e3/
+    local libfdt_wrap="$uboot_dir/scripts/dtc/pylibfdt/libfdt_wrap.c"
+    if [[ -f "$libfdt_wrap" ]]; then
+        sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' "$libfdt_wrap"
+        log "pylibfdt patched for SWIG 4.3+"
     fi
 
     cd "$uboot_dir"
