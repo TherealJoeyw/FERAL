@@ -165,6 +165,20 @@ check_deps() {
         die "Buildroot rootfs not found at $BUILDROOT_ROOTFS. Set FERAL_ROOTFS to override."
 }
 
+build_atf() {
+    log "[$PROFILE] Building ARM Trusted Firmware..."
+    local atf_dir="$WORKSPACE/$PROFILE/trusted-firmware-a"
+
+    if [[ ! -d "$atf_dir" ]]; then
+        git clone --depth=1 https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git "$atf_dir"
+    fi
+
+    cd "$atf_dir"
+    make CROSS_COMPILE="$CROSS_COMPILE" PLAT=sun50i_h616 DEBUG=0 bl31
+    [[ -f build/sun50i_h616/release/bl31.bin ]] || die "ATF bl31.bin not produced"
+    log "ATF OK"
+}
+
 build_uboot() {
     log "[$PROFILE] Building U-Boot..."
     local uboot_dir="$WORKSPACE/$PROFILE/u-boot"
@@ -193,7 +207,7 @@ build_uboot() {
 
     log "U-Boot defconfig: $defconfig"
     make CROSS_COMPILE="$CROSS_COMPILE" "$defconfig"
-    make CROSS_COMPILE="$CROSS_COMPILE" -j"$(nproc)"
+    make CROSS_COMPILE="$CROSS_COMPILE" BL31="$WORKSPACE/$PROFILE/trusted-firmware-a/build/sun50i_h616/release/bl31.bin" -j"$(nproc)"
 
     [[ -f u-boot-sunxi-with-spl.bin ]] || die "U-Boot build produced no u-boot-sunxi-with-spl.bin"
     log "U-Boot OK"
@@ -331,6 +345,7 @@ main() {
     log "Profile: $PROFILE"
     mkdir -p "$WORKSPACE/$PROFILE"
     check_deps
+    build_atf
     build_uboot
     build_kernel
     assemble_image
