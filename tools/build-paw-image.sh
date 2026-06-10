@@ -247,11 +247,7 @@ build_uboot() {
 
     # The H700 defconfig uses the rg35xx-2024 device tree which is fine for U-Boot.
     # U-Boot only needs MMC and console — H-specific features are handled by the kernel DTS.
-
-    # Override boot command to load kernel directly from FAT partition.
-    # Try mmc 0 first, fall back to mmc 1 (RG35XX H has two SD slots).
-    ./scripts/config --set-str CONFIG_BOOTCOMMAND \
-        "if load mmc 0:1 \${kernel_addr_r} /Image; then load mmc 0:1 \${fdt_addr_r} /sun50i-h700-anbernic-rg35xx-h.dtb; setenv bootargs root=/dev/mmcblk0p2 rootwait console=ttyS0,115200; booti \${kernel_addr_r} - \${fdt_addr_r}; elif load mmc 1:1 \${kernel_addr_r} /Image; then load mmc 1:1 \${fdt_addr_r} /sun50i-h700-anbernic-rg35xx-h.dtb; setenv bootargs root=/dev/mmcblk1p2 rootwait console=ttyS0,115200; booti \${kernel_addr_r} - \${fdt_addr_r}; fi"
+    # Mainline U-Boot has boot_targets=mmc0 so distro_bootcmd will find extlinux.conf on p1.
 
     make CROSS_COMPILE="$CROSS_COMPILE" olddefconfig
     make CROSS_COMPILE="$CROSS_COMPILE" BL31="$WORKSPACE/$PROFILE/trusted-firmware-a/build/sun50i_h616/release/bl31.bin" NO_PYTHON=1 -j"$(nproc)"
