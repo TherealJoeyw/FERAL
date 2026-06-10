@@ -54,12 +54,13 @@ load_profile() {
             # FEL mode: connect OTG port (top USB-C) to PC with no SD card inserted.
             ARCH="arm64"
             CROSS_COMPILE="aarch64-linux-gnu-"
-            UBOOT_REPO="https://git.sr.ht/~tokyovigilante/u-boot"
+            UBOOT_REPO="https://github.com/u-boot/u-boot.git"
             KERNEL_REPO="https://git.sr.ht/~tokyovigilante/linux"
             KERNEL_BRANCH="h700-gpu-mainline"
             # h700-gpu-mainline carries WIP patches for H700 DE33 display engine,
             # NV3052C panel, Panfrost GPU power domain, and PWM backlight.
             UBOOT_DEFCONFIG_CANDIDATES=(
+                anbernic_rg35xx_h700_defconfig
                 anbernic_rg35xxplus_defconfig
                 anbernic_rg35xx-h_defconfig
                 rg35xx-h_defconfig
@@ -244,10 +245,10 @@ build_uboot() {
     log "U-Boot defconfig: $defconfig"
     make CROSS_COMPILE="$CROSS_COMPILE" "$defconfig"
 
-    # Override device tree to use the H variant, not the Plus.
-    # The anbernic_rg35xxplus_defconfig uses the Plus DTB by default.
-    # The H has different hardware (two USB ports, different MMC pin config).
-    ./scripts/config --set-str CONFIG_DEFAULT_DEVICE_TREE "sun50i-h700-anbernic-rg35xxh"
+    # Mainline U-Boot's H700 defconfig targets the rg35xx-2024 device tree by default.
+    # Patch it to use the H variant which has the analog sticks and correct USB config.
+    # See: https://journal.amazinaxel.com/2025/10-26-linux-handheld
+    ./scripts/config --set-str CONFIG_DEFAULT_DEVICE_TREE "allwinner/sun50i-h700-anbernic-rg35xx-h"
 
     # Override boot command to load kernel directly from FAT partition.
     # Try mmc 0 first, fall back to mmc 1 (RG35XX H has two SD slots).
