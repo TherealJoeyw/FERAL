@@ -245,10 +245,8 @@ build_uboot() {
     log "U-Boot defconfig: $defconfig"
     make CROSS_COMPILE="$CROSS_COMPILE" "$defconfig"
 
-    # Mainline U-Boot's H700 defconfig targets the rg35xx-2024 device tree by default.
-    # Patch it to use the H variant which has the analog sticks and correct USB config.
-    # See: https://journal.amazinaxel.com/2025/10-26-linux-handheld
-    ./scripts/config --set-str CONFIG_DEFAULT_DEVICE_TREE "allwinner/sun50i-h700-anbernic-rg35xx-h"
+    # The H700 defconfig uses the rg35xx-2024 device tree which is fine for U-Boot.
+    # U-Boot only needs MMC and console — H-specific features are handled by the kernel DTS.
 
     # Override boot command to load kernel directly from FAT partition.
     # Try mmc 0 first, fall back to mmc 1 (RG35XX H has two SD slots).
