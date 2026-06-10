@@ -244,6 +244,11 @@ build_uboot() {
     log "U-Boot defconfig: $defconfig"
     make CROSS_COMPILE="$CROSS_COMPILE" "$defconfig"
 
+    # Override device tree to use the H variant, not the Plus.
+    # The anbernic_rg35xxplus_defconfig uses the Plus DTB by default.
+    # The H has different hardware (two USB ports, different MMC pin config).
+    ./scripts/config --set-str CONFIG_DEFAULT_DEVICE_TREE "sun50i-h700-anbernic-rg35xxh"
+
     # Override boot command to load kernel directly from FAT partition.
     # Try mmc 0 first, fall back to mmc 1 (RG35XX H has two SD slots).
     ./scripts/config --set-str CONFIG_BOOTCOMMAND \
