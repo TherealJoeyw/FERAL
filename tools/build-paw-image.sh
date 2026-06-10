@@ -245,9 +245,9 @@ build_uboot() {
     make CROSS_COMPILE="$CROSS_COMPILE" "$defconfig"
 
     # Override boot command to load kernel directly from FAT partition.
-    # distro_bootcmd has no BOOT_TARGETS defined in this fork so it does nothing.
+    # Try mmc 0 first, fall back to mmc 1 (RG35XX H has two SD slots).
     ./scripts/config --set-str CONFIG_BOOTCOMMAND \
-        "load mmc 0:1 \${kernel_addr_r} /Image; load mmc 0:1 \${fdt_addr_r} /sun50i-h700-anbernic-rg35xx-h.dtb; setenv bootargs root=/dev/mmcblk0p2 rootwait console=ttyS0,115200; booti \${kernel_addr_r} - \${fdt_addr_r}"
+        "if load mmc 0:1 \${kernel_addr_r} /Image; then load mmc 0:1 \${fdt_addr_r} /sun50i-h700-anbernic-rg35xx-h.dtb; setenv bootargs root=/dev/mmcblk0p2 rootwait console=ttyS0,115200; booti \${kernel_addr_r} - \${fdt_addr_r}; elif load mmc 1:1 \${kernel_addr_r} /Image; then load mmc 1:1 \${fdt_addr_r} /sun50i-h700-anbernic-rg35xx-h.dtb; setenv bootargs root=/dev/mmcblk1p2 rootwait console=ttyS0,115200; booti \${kernel_addr_r} - \${fdt_addr_r}; fi"
 
     make CROSS_COMPILE="$CROSS_COMPILE" olddefconfig
     make CROSS_COMPILE="$CROSS_COMPILE" BL31="$WORKSPACE/$PROFILE/trusted-firmware-a/build/sun50i_h616/release/bl31.bin" NO_PYTHON=1 -j"$(nproc)"
