@@ -293,6 +293,9 @@ build_kernel() {
         `# Filesystems` \
         --enable CONFIG_VFAT_FS \
         --enable CONFIG_EXT4_FS \
+        `# USB gadget serial — enables serial console over the OTG USB-C port` \
+        --enable CONFIG_USB_GADGET \
+        --enable CONFIG_USB_G_SERIAL \
         `# USB ethernet (generic, for debug adapters)` \
         --enable CONFIG_USB_NET_DRIVERS \
         --enable CONFIG_USB_RTL8152
@@ -358,7 +361,7 @@ assemble_image() {
 label FERAL PAW
   kernel /Image
   fdt /$DTB_NAME
-  append root=/dev/mmcblk0p2 rootwait console=ttyS0,115200 console=tty1 quiet
+  append root=/dev/mmcblk0p2 rootwait console=ttyS0,115200
 EOF
 
     sudo make -C "$WORKSPACE/$PROFILE/linux" \

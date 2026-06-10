@@ -1,0 +1,18 @@
+#!/bin/sh
+# FERAL OS — USB gadget serial console
+# Presents a serial port over the OTG USB-C port (top port)
+# Connect to a PC and open at 115200 baud to get a shell
+
+start() {
+    modprobe g_serial 2>/dev/null || true
+}
+
+stop() {
+    rmmod g_serial 2>/dev/null || true
+}
+
+case "$1" in
+    start) start ;;
+    stop)  stop  ;;
+    *) echo "Usage: $0 {start|stop}"; exit 1 ;;
+esac
