@@ -243,7 +243,13 @@ build_uboot() {
 
     log "U-Boot defconfig: $defconfig"
     make CROSS_COMPILE="$CROSS_COMPILE" "$defconfig"
-    make CROSS_COMPILE="$CROSS_COMPILE" BL31="$WORKSPACE/$PROFILE/trusted-firmware-a/build/sun50i_h616/release/bl31.bin" NO_PYTHON=1 -j"$(nproc)"
+
+    # Override boot command to load kernel directly from FAT partition.
+    # distro_bootcmd has no BOOT_TARGETS defined in this fork so it does nothing.
+    ./scripts/config --set-str CONFIG_BOOTCOMMAND \
+        "load mmc 0:1 \${kernel_addr_r} /Image; load mmc 0:1 \${fdt_addr_r} /sun50i-h700-anbernic-rg35xx-h.dtb; setenv bootargs root=/dev/mmcblk0p2 rootwait console=ttyS0,115200; booti \${kernel_addr_r} - \${fdt_addr_r}"
+
+    make CROSS_COMPILE="$CROSS_COMPILE" olddefconfig
 
     [[ -f u-boot-sunxi-with-spl.bin ]] || die "U-Boot build produced no u-boot-sunxi-with-spl.bin"
     log "U-Boot OK"
