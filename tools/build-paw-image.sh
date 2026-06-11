@@ -186,6 +186,9 @@ build_uboot() {
 
     if [[ ! -d "$uboot_dir" ]]; then
         git clone "$UBOOT_REPO" "$uboot_dir"
+        # Pin to a stable release rather than master, which can be broken on any given day.
+        # H700 defconfig has been present since v2024.10.
+        git -C "$uboot_dir" checkout v2025.10
     fi
 
     # Build pylibfdt manually — setup.py cannot run in this context and
