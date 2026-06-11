@@ -245,9 +245,12 @@ build_uboot() {
     log "U-Boot defconfig: $defconfig"
     make CROSS_COMPILE="$CROSS_COMPILE" "$defconfig"
 
-    # The H700 defconfig uses the rg35xx-2024 device tree which is fine for U-Boot.
-    # U-Boot only needs MMC and console — H-specific features are handled by the kernel DTS.
-    # Mainline U-Boot has boot_targets=mmc0 so distro_bootcmd will find extlinux.conf on p1.
+    # Apply the H device tree variant instead of the 2024 default.
+    # The H DTS is at dts/upstream/src/arm64/allwinner/sun50i-h700-anbernic-rg35xx-h.dts
+    # CONFIG_OF_LIST must also be updated or binman will reject the default-dt.
+    ./scripts/config \
+        --set-str CONFIG_DEFAULT_DEVICE_TREE "allwinner/sun50i-h700-anbernic-rg35xx-h" \
+        --set-str CONFIG_OF_LIST "allwinner/sun50i-h700-anbernic-rg35xx-h"
 
     make CROSS_COMPILE="$CROSS_COMPILE" olddefconfig
     make CROSS_COMPILE="$CROSS_COMPILE" BL31="$WORKSPACE/$PROFILE/trusted-firmware-a/build/sun50i_h616/release/bl31.bin" NO_PYTHON=1 -j"$(nproc)"
@@ -365,10 +368,13 @@ assemble_image() {
 
     sudo mkdir -p "$boot_mnt/extlinux"
     sudo tee "$boot_mnt/extlinux/extlinux.conf" > /dev/null <<EOF
-label FERAL PAW
-  kernel /Image
-  fdt /$DTB_NAME
-  append root=/dev/mmcblk0p2 rootwait console=ttyS0,115200
+TIMEOUT 10
+DEFAULT feral-paw
+
+LABEL feral-paw
+  KERNEL /Image
+  FDT /sun50i-h700-anbernic-rg35xx-h.dtb
+  APPEND root=/dev/mmcblk0p2 rootwait console=ttyS0,115200
 EOF
 
     sudo make -C "$WORKSPACE/$PROFILE/linux" \
