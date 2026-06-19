@@ -20,7 +20,7 @@ FERAL is modular. Each component is an independent platform that runs FERAL OS a
 |-----------|-----------|------|
 | **PAW** | Peripheral Auxiliary Workstation | Primary operator interface. Handheld form factor. Local apps, field control, and user interaction. |
 | **WHISKER** | Wireless Hub for Intelligence, Sensing, Kinetics, and Environmental Reconnaissance | Sensor and communications node. Continuous logging. Runs headless. |
-| **STALK** | Synchronised Telemetry Analysis and Logging Kernel | Home backend. Inference, storage, sync distribution, and update serving. Runs in Docker. |
+| **STALK** | System for Thinking, Analysis, Learning and Knowledge | Home backend. Inference, storage, sync distribution, and update serving. Runs in Docker. |
 | **CLAW** | (bare metal/RTOS firmware nodes) | ESP32-based peripheral and mesh nodes. Bare metal or FreeRTOS. Not a FERAL OS profile. |
 | **SCAR** | Standard Calico Asset Receptacle | Open USB-C hardware expansion standard. Shared across PAW and WHISKER. |
 
@@ -40,7 +40,7 @@ It is offline-first. Sync is opportunistic over any available IP link. MeshCore 
 
 | Component | Hardware |
 |-----------|----------|
-| PAW | Anbernic RG35XX H (Allwinner H700) |
+| PAW | Anbernic RG35XX H (Allwinner H700) — current reference hardware. PAW targets any compact handheld or cyberdeck-style device running a supported SoC. More platforms will be added as FERAL OS matures. |
 | WHISKER | Raspberry Pi Zero 2W |
 | STALK | Any x86 or ARM64 host running Docker |
 | CLAW | ESP32 (various modules) |
@@ -91,4 +91,3 @@ Architecture and design decisions are documented in `docs/`. Read those before o
 Contribution guidelines will be formalised as the codebase matures.
 
 ---
-
