@@ -274,6 +274,45 @@ build_kernel() {
 
     cd "$kernel_dir"
 
+    # Patch the H DTS to add WiFi power sequencer and SDIO mmc1 node.
+    # The mainline H DTS is missing these — copied from the Plus DTS which shares
+    # the same RTL8821CS chip and almost certainly the same GPIO assignments.
+    local h_dts="arch/arm64/boot/dts/allwinner/sun50i-h700-anbernic-rg35xx-h.dts"
+    if ! grep -q "wifi_pwrseq" "$h_dts"; then
+        log "Patching H DTS: adding WiFi pwrseq and mmc1..."
+        sed -i '$ d' "$h_dts"
+        cat >> "$h_dts" << 'DTS_EOF'
+
+	wifi_pwrseq: pwrseq {
+		compatible = "mmc-pwrseq-simple";
+		clocks = <&rtc CLK_OSC32K_FANOUT>;
+		clock-names = "ext_clock";
+		pinctrl-0 = <&x32clk_fanout_pin>;
+		pinctrl-names = "default";
+		post-power-on-delay-ms = <200>;
+		reset-gpios = <&pio 6 18 GPIO_ACTIVE_LOW>; /* PG18 */
+	};
+};
+
+/* SDIO WiFi RTL8821CS */
+&mmc1 {
+	vmmc-supply = <&reg_cldo4>;
+	vqmmc-supply = <&reg_aldo4>;
+	mmc-pwrseq = <&wifi_pwrseq>;
+	bus-width = <4>;
+	non-removable;
+	status = "okay";
+
+	sdio_wifi: wifi@1 {
+		reg = <1>;
+		interrupt-parent = <&pio>;
+		interrupts = <6 15 IRQ_TYPE_LEVEL_LOW>; /* PG15 */
+		interrupt-names = "host-wake";
+	};
+};
+DTS_EOF
+    fi
+
     make ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" defconfig
 
     # Common configs for any Linux handheld target
@@ -377,7 +416,7 @@ DEFAULT feral-paw
 LABEL feral-paw
   KERNEL /Image
   FDT /sun50i-h700-anbernic-rg35xx-h.dtb
-  APPEND root=/dev/mmcblk0p2 rootwait console=ttyS0,115200
+  APPEND root=/dev/mmcblk0p2 rootwait rw console=ttyS0,115200
 EOF
 
     sudo make -C "$WORKSPACE/$PROFILE/linux" \
@@ -394,6 +433,15 @@ EOF
     else
         warn "No overlay dir at $OVERLAY_DIR — skipping."
     fi
+
+    # Download regulatory.db for WiFi
+    log "Fetching regulatory.db..."
+    sudo mkdir -p "$root_mnt/lib/firmware"
+    sudo wget -q -O "$root_mnt/lib/firmware/regulatory.db" \
+        "https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/plain/regulatory.db" || \
+        warn "Could not fetch regulatory.db — WiFi regulatory domain will be unavailable"
+    sudo wget -q -O "$root_mnt/lib/firmware/regulatory.db.p7s" \
+        "https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/plain/regulatory.db.p7s" || true
 
     sync
     sudo umount "$boot_mnt" "$root_mnt"
