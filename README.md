@@ -1,4 +1,4 @@
-# CALICO FERAL
+# FERAL
 
 **Field Expedient Reconnaissance and Analysis Laboratory**
 
@@ -21,7 +21,7 @@ FERAL is modular. Each component is an independent platform that runs FERAL OS a
 | **PAW** | Peripheral Auxiliary Workstation | Primary operator interface. Handheld form factor. Local apps, field control, and user interaction. |
 | **WHISKER** | Wireless Hub for Intelligence, Sensing, Kinetics, and Environmental Reconnaissance | Sensor and communications node. Continuous logging. Runs headless. |
 | **STALK** | System for Thinking, Analysis, Learning and Knowledge | Home backend. Inference, storage, sync distribution, and update serving. Runs in Docker. |
-| **CLAW** | (bare metal/RTOS firmware nodes) | ESP32-based peripheral and mesh nodes. Bare metal or FreeRTOS. Not a FERAL OS profile. |
+| **CLAW** | Cooperating Linker and Adaptor for Whatever | ESP32-based peripheral and mesh nodes. Bare metal or FreeRTOS. Not a FERAL OS profile. |
 | **SCAR** | Standard Calico Asset Receptacle | Open USB-C hardware expansion standard. Shared across PAW and WHISKER. |
 
 PAW, WHISKER, and STALK all run FERAL OS. CLAW runs independently and communicates with the rest of the platform over serial or mesh protocols. SCAR is a hardware standard, not a device.
@@ -91,3 +91,4 @@ Architecture and design decisions are documented in `docs/`. Read those before o
 Contribution guidelines will be formalised as the codebase matures.
 
 ---
+
