@@ -2,11 +2,15 @@
 
 **Field Expedient Reconnaissance and Analysis Laboratory**
 
-FERAL is an open source modular field computing platform built around a single design principle: *structural privacy*. Not a locked door. Not just a hardened system. An architecture that is physically and logically incapable of surveillance by design.
+FERAL is an open source modular field computing platform built around a two design principles: 
+
+*structural privacy*: Not a locked door. Not just a hardened system. An architecture that is physically and logically incapable of surveillance by design.
+
+*graceful degradation*: It runs on cheap, widely available hardware. It works offline. It syncs opportunistically when links exist and degrades gracefully when they don't. The goal is a field computing capability that fits in a jacket pocket and blends into everyday electronics while providing real utility in degraded or hostile environments.
+
+
 
 The difference matters. A locked door can be unlocked. A system with no server to report to, no persistent keys to seize, and no network to intercept has nothing to give up. Privacy here is a property of the structure, not a policy applied on top of it. The closest analogies are Tor and Bitcoin — systems where the guarantee comes from how they work, not from promises made by the people who run them.
-
-FERAL is also a practical tool. It runs on cheap, widely available hardware. It works offline. It syncs opportunistically when links exist and degrades gracefully when they don't. The goal is a field computing capability that fits in a jacket pocket and blends into everyday electronics while providing real utility in degraded or hostile environments.
 
 It is a political statement that also works.
 
