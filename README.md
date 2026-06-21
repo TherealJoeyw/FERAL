@@ -2,7 +2,7 @@
 
 **Field Expedient Reconnaissance and Analysis Laboratory**
 
-FERAL is an open source modular field computing platform built around a two design principles: 
+FERAL is an open source modular field computing platform built around two design principles: 
 
 *structural privacy*: Not a locked door. Not just a hardened system. An architecture that is physically and logically incapable of surveillance by design.
 
