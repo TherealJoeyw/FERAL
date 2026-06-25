@@ -90,7 +90,7 @@ Licence texts are in `LICENCE-polyform-nc` and `LICENCE-mit` in the repository r
 
 ## Contributing
 
-Architecture and design decisions are documented in `docs/`. Read those before opening a PR. For structural changes, open an issue first.
+Architecture and design decisions will be documented in `docs/`. if they exist read those before opening a PR. For structural changes, open an issue first.
 
 Contribution guidelines will be formalised as the codebase matures.
 
