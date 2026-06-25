@@ -55,6 +55,7 @@ load_profile() {
             #
             # NOTE: The H DTS includes the Plus DTS via #include. WiFi pwrseq and
             # mmc1 SDIO node are inherited from the Plus DTS — no patching needed.
+            # USB OTG patch is applied to the Plus DTS for the same reason.
             ARCH="arm64"
             CROSS_COMPILE="aarch64-linux-gnu-"
             UBOOT_REPO="https://github.com/u-boot/u-boot.git"
@@ -111,7 +112,11 @@ kernel_configs_rg35xxh() {
         `# PWM backlight (WIP patch in kernel fork)` \
         --enable CONFIG_PWM_SUN4I \
         `# GPU: Mali G31 MP2 via Panfrost (power domain patch in kernel fork)` \
-        --enable CONFIG_DRM_PANFROST
+        --enable CONFIG_DRM_PANFROST \
+        `# USB musb OTG controller (required for USB gadget/ADB)` \
+        --enable CONFIG_USB_MUSB_HDRC \
+        --enable CONFIG_USB_MUSB_SUNXI \
+        --enable CONFIG_MUSB_PIO_ONLY
 }
 
 # ---------------------------------------------------------------------------
@@ -280,6 +285,27 @@ build_kernel() {
     fi
 
     cd "$kernel_dir"
+
+    # Patch Plus DTS to enable USB OTG (peripheral mode) and usbphy.
+    # The H DTS includes the Plus DTS via #include, so H inherits this automatically.
+    # Taken from sun50i-h700-anbernic-rg35xx-2024.dts — hardware is identical.
+    # Grep guard prevents double-patching on rebuild.
+    local plus_dts="arch/arm64/boot/dts/allwinner/sun50i-h700-anbernic-rg35xx-plus.dts"
+    if ! grep -q "usbotg" "$plus_dts"; then
+        log "Patching Plus DTS: enabling usbotg and usbphy..."
+        cat >> "$plus_dts" << 'DTS_EOF'
+
+/* USB OTG — top USB-C port, peripheral mode for ADB/gadget */
+&usbotg {
+	dr_mode = "peripheral";
+	status = "okay";
+};
+
+&usbphy {
+	status = "okay";
+};
+DTS_EOF
+    fi
 
     make ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" defconfig
 
