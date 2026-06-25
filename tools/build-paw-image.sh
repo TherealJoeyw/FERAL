@@ -55,7 +55,7 @@ load_profile() {
             #
             # NOTE: The H DTS includes the Plus DTS via #include. WiFi pwrseq and
             # mmc1 SDIO node are inherited from the Plus DTS — no patching needed.
-            # USB OTG patch is applied to the Plus DTS for the same reason.
+            # USB OTG and pwrseq workaround patches are applied to the Plus DTS.
             ARCH="arm64"
             CROSS_COMPILE="aarch64-linux-gnu-"
             UBOOT_REPO="https://github.com/u-boot/u-boot.git"
@@ -286,11 +286,25 @@ build_kernel() {
 
     cd "$kernel_dir"
 
+    local plus_dts="arch/arm64/boot/dts/allwinner/sun50i-h700-anbernic-rg35xx-plus.dts"
+
+    # Workaround for pwrseq_simple reset_control bug.
+    # When reset-gpios has exactly 1 entry, pwrseq_simple calls
+    # devm_reset_control_get_optional_shared() which returns an error instead
+    # of NULL on kernels without a reset provider for the node. This causes
+    # probe to fail with -ENOENT before it ever tries the GPIO path.
+    # Fix: duplicate the reset GPIO so ngpio == 2, which skips the reset
+    # controller path entirely and falls through to devm_gpiod_get_array.
+    # Grep guard checks for the duplicated form to prevent double-patching.
+    if ! grep -q "GPIO_ACTIVE_LOW>," "$plus_dts"; then
+        log "Patching Plus DTS: duplicating reset GPIO to bypass pwrseq reset_control bug..."
+        sed -i 's|reset-gpios = <\&pio 6 18 GPIO_ACTIVE_LOW>;|reset-gpios = <\&pio 6 18 GPIO_ACTIVE_LOW>, <\&pio 6 18 GPIO_ACTIVE_LOW>;|' "$plus_dts"
+    fi
+
     # Patch Plus DTS to enable USB OTG (peripheral mode) and usbphy.
     # The H DTS includes the Plus DTS via #include, so H inherits this automatically.
     # Taken from sun50i-h700-anbernic-rg35xx-2024.dts — hardware is identical.
     # Grep guard prevents double-patching on rebuild.
-    local plus_dts="arch/arm64/boot/dts/allwinner/sun50i-h700-anbernic-rg35xx-plus.dts"
     if ! grep -q "usbotg" "$plus_dts"; then
         log "Patching Plus DTS: enabling usbotg and usbphy..."
         cat >> "$plus_dts" << 'DTS_EOF'
