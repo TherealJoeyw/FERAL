@@ -55,7 +55,7 @@ load_profile() {
             #
             # NOTE: The H DTS includes the Plus DTS via #include. WiFi pwrseq and
             # mmc1 SDIO node are inherited from the Plus DTS — no patching needed.
-            # USB OTG and pwrseq workaround patches are applied to the Plus DTS.
+            # USB OTG patch is applied to the Plus DTS for the same reason.
             ARCH="arm64"
             CROSS_COMPILE="aarch64-linux-gnu-"
             UBOOT_REPO="https://github.com/u-boot/u-boot.git"
@@ -287,18 +287,17 @@ build_kernel() {
     cd "$kernel_dir"
 
     local plus_dts="arch/arm64/boot/dts/allwinner/sun50i-h700-anbernic-rg35xx-plus.dts"
+    local pwrseq_driver="drivers/mmc/core/pwrseq_simple.c"
 
-    # Workaround for pwrseq_simple reset_control bug.
-    # When reset-gpios has exactly 1 entry, pwrseq_simple calls
-    # devm_reset_control_get_optional_shared() which returns an error instead
-    # of NULL on kernels without a reset provider for the node. This causes
-    # probe to fail with -ENOENT before it ever tries the GPIO path.
-    # Fix: duplicate the reset GPIO so ngpio == 2, which skips the reset
-    # controller path entirely and falls through to devm_gpiod_get_array.
-    # Grep guard checks for the duplicated form to prevent double-patching.
-    if ! grep -q "GPIO_ACTIVE_LOW>," "$plus_dts"; then
-        log "Patching Plus DTS: duplicating reset GPIO to bypass pwrseq reset_control bug..."
-        sed -i 's|reset-gpios = <\&pio 6 18 GPIO_ACTIVE_LOW>;|reset-gpios = <\&pio 6 18 GPIO_ACTIVE_LOW>, <\&pio 6 18 GPIO_ACTIVE_LOW>;|' "$plus_dts"
+    # Patch pwrseq_simple.c to skip the reset controller lookup when no
+    # 'resets' property exists in the DT node. Without this, having exactly
+    # one reset-gpios entry triggers devm_reset_control_get_optional_shared()
+    # which returns -EBUSY/-ENOENT even when no reset controller is present,
+    # causing probe to fail before it reaches the GPIO path.
+    # Grep guard checks for the patched form to prevent double-patching.
+    if ! grep -q "of_find_property.*resets" "$pwrseq_driver"; then
+        log "Patching pwrseq_simple.c: skip reset controller when no resets property..."
+        sed -i 's/if (ngpio == 1) {/if (ngpio == 1 \&\& of_find_property(dev->of_node, "resets", NULL)) {/' "$pwrseq_driver"
     fi
 
     # Patch Plus DTS to enable USB OTG (peripheral mode) and usbphy.
